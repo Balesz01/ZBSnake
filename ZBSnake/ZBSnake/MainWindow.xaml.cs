@@ -24,9 +24,9 @@ namespace ZBSnake
         public DispatcherTimer simTimer;
         public SimulationTime Time = new SimulationTime();
         private DrawGame renderer = new DrawGame();
-
-        // Eltároljuk a kígyó aktuális haladási irányát (alapból menjen jobbra)
         private Direction currentDirection = Direction.Right;
+        private int[,] map = new int[20, 20];
+        private int cellSize = 20;
 
         public MainWindow()
         {
@@ -52,7 +52,7 @@ namespace ZBSnake
             // simTimer.Interval = TimeSpan.FromSeconds(UjGyorsabbIdo);
 
             // 4. Képernyő (UI) frissítése / Kígyó újrarajzolása
-            renderer.Draw(GameCanvas, snakeParts, apple, snakeSize);
+            renderer.Draw(GameCanvas, map, cellSize);
         }
 
         private void Window_KeyDown(object sender, KeyEventArgs e)
