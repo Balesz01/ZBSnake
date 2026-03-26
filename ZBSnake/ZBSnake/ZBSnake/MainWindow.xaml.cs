@@ -32,5 +32,39 @@ namespace ZBSnake
         {
             
         }
+
+        private void Window_KeyDown(object sender, KeyEventArgs e)
+        {
+            switch (e.Key)
+            {
+                case Key.W:
+
+                    break;
+                case Key.S:
+
+                    break;
+                case Key.A:
+
+                    break;
+                case Key.D:
+
+                    break;
+                case Key.Space:
+
+                    break;
+                case Key.R:
+
+                    break;
+                case Key.T:
+
+                    break;
+                case Key.Z:
+
+                    break;
+                case Key.U:
+                    break;
+            }
+        }
+
     }
 }
