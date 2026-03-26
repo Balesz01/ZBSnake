@@ -3,6 +3,8 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
 using ZBSnake.Models;
+using ZBSnake.View;
+using ZBSnake.Controller;
 
 namespace ZBSnake
 {
@@ -21,6 +23,7 @@ namespace ZBSnake
     {
         public DispatcherTimer simTimer;
         public SimulationTime Time = new SimulationTime();
+        private DrawGame renderer = new DrawGame();
 
         // Eltároljuk a kígyó aktuális haladási irányát (alapból menjen jobbra)
         private Direction currentDirection = Direction.Right;
@@ -34,7 +37,6 @@ namespace ZBSnake
             simTimer.Interval = TimeSpan.FromSeconds(Time.TimeRate);
             simTimer.Tick += SimTimer_Tick;
 
-            // EL KELL INDÍTANI a timert, hogy a Tick események elkezdjenek lefutni!
             simTimer.Start();
         }
 
@@ -43,7 +45,6 @@ namespace ZBSnake
 
             // MoveSnake(); 
 
-
             // CheckCollisions();
 
             // 3. Evés vizsgálat (Megevett egy almát?)
@@ -51,7 +52,7 @@ namespace ZBSnake
             // simTimer.Interval = TimeSpan.FromSeconds(UjGyorsabbIdo);
 
             // 4. Képernyő (UI) frissítése / Kígyó újrarajzolása
-            // DrawGame();
+            renderer.Draw(GameCanvas, snakeParts, apple, snakeSize);
         }
 
         private void Window_KeyDown(object sender, KeyEventArgs e)
