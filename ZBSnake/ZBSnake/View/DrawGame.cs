@@ -20,9 +20,9 @@ namespace ZBSnake.View
         public DrawGame()
         {
             // 1. Az alma kép betöltése
-            appleBrush = new ImageBrush(new BitmapImage(new Uri("pack://application:,,,/Images/apple.png")));
+            appleBrush = new ImageBrush(new BitmapImage(new Uri("pack://application:,,,/Images/alma.png")));
 
-            snakeBrush = new ImageBrush(new BitmapImage(new Uri("pack://application:,,,/Images/snake.png")));
+            snakeBrush = new ImageBrush(new BitmapImage(new Uri("pack://application:,,,/Images/snakehead.png")));
 
         }
 
@@ -70,16 +70,17 @@ namespace ZBSnake.View
                             Margin = new Thickness(1)
                         };
 
-                        // Ha 1-es van a mátrixban -> Kígyó
-                        if (cellValue == 1)
+                        if (cellValue == 1) // Kígyó
                         {
-                            entityRect.Fill = Brushes.LimeGreen;
+                            // Ha sikerült betölteni a képet, azt használjuk, különben zöld színű lesz
+                            if (snakeBrush != null) entityRect.Fill = snakeBrush;
+                            else entityRect.Fill = Brushes.LimeGreen;
                         }
-                        // Ha 2-es van a mátrixban -> Alma
-                        else if (cellValue == 2)
+                        else if (cellValue == 2) // Alma
                         {
-                            entityRect.Fill = Brushes.Red;
-                            // (Ha betetted az alma képet, ide jöhet az ImageBrush kódja a Brushes.Red helyett!)
+                            // Ha sikerült betölteni a képet, azt használjuk, különben piros színű lesz
+                            if (appleBrush != null) entityRect.Fill = appleBrush;
+                            else entityRect.Fill = Brushes.Red;
                         }
 
                         Canvas.SetLeft(entityRect, x * cellSize);

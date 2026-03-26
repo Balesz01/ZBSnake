@@ -26,12 +26,13 @@ namespace ZBSnake
         private DrawGame renderer = new DrawGame();
         private Direction currentDirection = Direction.Right;
         private int[,] map = new int[20, 20];
-        private int cellSize = 20;
+        private int cellSize = 40;
 
         public MainWindow()
         {
             InitializeComponent();
 
+            SetupGame();
             simTimer = new DispatcherTimer();
             // A TimeRate határozza meg, milyen gyors a játék (pl. 0.1 vagy 0.2 másodperc)
             simTimer.Interval = TimeSpan.FromSeconds(Time.TimeRate);
@@ -85,6 +86,18 @@ namespace ZBSnake
                         currentDirection = Direction.Right;
                     break;
             }
+        }
+
+        private void SetupGame()
+        {
+            // Biztos ami biztos, letöröljük az egész pályát (csupa 0 lesz)
+            Array.Clear(map, 0, map.Length);
+
+            // A kígyó feje (1-es) kerüljön a 10. sor 10. oszlopába (pont a pálya közepe)
+            map[10, 10] = 1;
+
+            // Az alma (2-es) kerüljön mondjuk az 5. sor 15. oszlopába
+            map[5, 15] = 2;
         }
 
     }
