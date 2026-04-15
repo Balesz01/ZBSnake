@@ -1,37 +1,60 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace ZBSnake.Models
 {
+    /// <summary>
+    /// Stopwatch alapú időzítő – a DispatcherTimer pontatlanságát kiváltja.
+    /// A mozgás akkor történik, ha legalább TimeRate másodperc eltelt az utolsó lépés óta.
+    /// </summary>
     public class SimulationTime
     {
+        private Stopwatch stopwatch = new Stopwatch();
+        private double accumulated = 0;
+
         /// <summary>
-        /// A játék alapvető sebessége másodpercben (mennyi idő telik el két lépés között).
-        /// Kisebb szám = gyorsabb játék.
+        /// Két lépés között eltelő idő másodpercben. Kisebb = gyorsabb.
         /// </summary>
-        public double TimeRate { get; set; }
+        public double TimeRate { get; set; } = 0.3;
 
         public SimulationTime()
         {
-            // Kezdeti sebesség beállítása (pl. 0.2 másodpercenként lép egyet a kígyó)
-            TimeRate = 0.2;
+            stopwatch.Start();
         }
 
         /// <summary>
-        /// Ezt a metódust akkor hívhatod meg, ha a kígyó megevett egy almát, 
-        /// és szeretnéd, hogy a játék egy kicsit gyorsuljon.
+        /// Meghívandó minden UI tick-nél (pl. 16ms-es DispatcherTimer).
+        /// Visszatér true-val, ha a kígyónak lépnie kell.
+        /// </summary>
+        public bool ShouldStep()
+        {
+            double elapsed = stopwatch.Elapsed.TotalSeconds;
+            stopwatch.Restart();
+
+            accumulated += elapsed;
+
+            if (accumulated >= TimeRate)
+            {
+                accumulated -= TimeRate;
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Alma evésekor gyorsítás.
         /// </summary>
         public void IncreaseSpeed()
         {
-            // Ne engedjük, hogy a játék játszhatatlanul gyors legyen (pl. 0.05 alá ne menjen)
             if (TimeRate > 0.05)
-            {
-                // Minden evésnél csökkentjük az időközt 0.01 másodperccel
                 TimeRate -= 0.01;
-            }
+        }
+
+        public void Reset()
+        {
+            TimeRate = 0.2;
+            accumulated = 0;
+            stopwatch.Restart();
         }
     }
 }

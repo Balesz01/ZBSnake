@@ -16,6 +16,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="MySql.Data" Version="9.6.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Resource Include="Images\alma.png" />
     <Resource Include="Images\snakebody.png" />
     <Resource Include="Images\snakeend.png" />

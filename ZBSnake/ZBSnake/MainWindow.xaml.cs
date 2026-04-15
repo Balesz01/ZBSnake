@@ -2,103 +2,181 @@
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
+using System.Windows.Controls;
+using System.Windows.Media;
 using ZBSnake.Models;
 using ZBSnake.View;
 using ZBSnake.Controller;
 
 namespace ZBSnake
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
+    public enum Direction { Up, Down, Left, Right }
 
-    public enum Direction
-    {
-        Up,
-        Down,
-        Left,
-        Right
-    }
     public partial class MainWindow : Window
     {
         public DispatcherTimer simTimer;
         public SimulationTime Time = new SimulationTime();
         private DrawGame renderer = new DrawGame();
+        private Movement movement;
+        private Scoretodatabase db;
+
         private Direction currentDirection = Direction.Right;
+        private Direction nextDirection = Direction.Right;
+
         private int[,] map = new int[20, 20];
         private int cellSize = 40;
+
+        private TextBlock scoreText;
+        private bool gameOverHandled = false;
 
         public MainWindow()
         {
             InitializeComponent();
 
-            SetupGame();
-            simTimer = new DispatcherTimer();
-            // A TimeRate határozza meg, milyen gyors a játék (pl. 0.1 vagy 0.2 másodperc)
-            simTimer.Interval = TimeSpan.FromSeconds(Time.TimeRate);
-            simTimer.Tick += SimTimer_Tick;
+            try { db = new Scoretodatabase(); }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Adatbázis hiba: {ex.Message}\nA játék adatbázis nélkül fut.",
+                                "Figyelmeztetés", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
 
+            scoreText = new TextBlock
+            {
+                FontSize = 18,
+                FontWeight = FontWeights.Bold,
+                Foreground = Brushes.White,
+                Text = "Pontszám: 0"
+            };
+            Canvas.SetLeft(scoreText, 10);
+            Canvas.SetTop(scoreText, 10);
+            Panel.SetZIndex(scoreText, 10);
+            GameCanvas.Children.Add(scoreText);
+
+            SetupGame();
+
+            simTimer = new DispatcherTimer();
+            simTimer.Interval = TimeSpan.FromSeconds(Time.TimeRate);  // állandó sebesség
+            simTimer.Tick += SimTimer_Tick;
             simTimer.Start();
         }
 
         private void SimTimer_Tick(object sender, EventArgs e)
         {
+            currentDirection = nextDirection;
 
-            // MoveSnake(); 
+            Time.IncreaseSpeed();
+            movement.MoveSnake(map, currentDirection);
 
-            // CheckCollisions();
+            if (movement.IsGameOver)
+            {
+                simTimer.Stop();
+                renderer.Draw(GameCanvas, map, cellSize);
+                UpdateScore();
 
-            // 3. Evés vizsgálat (Megevett egy almát?)
-            // Ha igen, nő a pontszám, hosszabbodik a kígyó, és esetleg gyorsul a timer:
-            // simTimer.Interval = TimeSpan.FromSeconds(UjGyorsabbIdo);
+                if (!gameOverHandled)
+                {
+                    gameOverHandled = true;
+                    HandleGameOver();
+                }
+                return;
+            }
 
-            // 4. Képernyő (UI) frissítése / Kígyó újrarajzolása
             renderer.Draw(GameCanvas, map, cellSize);
+            UpdateScore();
+
+            GameCanvas.Children.Remove(scoreText);
+            GameCanvas.Children.Add(scoreText);
+            Panel.SetZIndex(scoreText, 999);
+        }
+
+        private void HandleGameOver()
+        {
+            // Játékosnév bekérése
+            string nev = Microsoft.VisualBasic.Interaction.InputBox(
+                $"Játék vége! Pontszámod: {movement.Score}\n\nAdd meg a neved a mentéshez:",
+                "Eredmény mentése",
+                "Játékos");
+
+            bool isNewRecord = false;
+
+            if (!string.IsNullOrWhiteSpace(nev) && db != null)
+            {
+                try { isNewRecord = db.TrySaveScore(nev.Trim(), movement.Score); }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Mentési hiba: {ex.Message}", "Hiba",
+                                    MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+
+            ShowGameOver(isNewRecord);
         }
 
         private void Window_KeyDown(object sender, KeyEventArgs e)
         {
-            // A gombnyomás CSAK az irányt változtatja meg.
-            // Extra szabály: a kígyó nem fordulhat meg 180 fokban önmagába!
             switch (e.Key)
             {
                 case Key.W:
                 case Key.Up:
-                    if (currentDirection != Direction.Down)
-                        currentDirection = Direction.Up;
-                    break;
-
+                    if (currentDirection != Direction.Down) nextDirection = Direction.Up; break;
                 case Key.S:
                 case Key.Down:
-                    if (currentDirection != Direction.Up)
-                        currentDirection = Direction.Down;
-                    break;
-
+                    if (currentDirection != Direction.Up) nextDirection = Direction.Down; break;
                 case Key.A:
                 case Key.Left:
-                    if (currentDirection != Direction.Right)
-                        currentDirection = Direction.Left;
-                    break;
-
+                    if (currentDirection != Direction.Right) nextDirection = Direction.Left; break;
                 case Key.D:
                 case Key.Right:
-                    if (currentDirection != Direction.Left)
-                        currentDirection = Direction.Right;
-                    break;
+                    if (currentDirection != Direction.Left) nextDirection = Direction.Right; break;
+                case Key.R:
+                    RestartGame(); break;
             }
         }
 
         private void SetupGame()
         {
-            // Biztos ami biztos, letöröljük az egész pályát (csupa 0 lesz)
             Array.Clear(map, 0, map.Length);
-
-            // A kígyó feje (1-es) kerüljön a 10. sor 10. oszlopába (pont a pálya közepe)
-            map[10, 10] = 1;
-
-            // Az alma (2-es) kerüljön mondjuk az 5. sor 15. oszlopába
-            map[5, 15] = 2;
+            movement = new Movement(20, 20);
+            movement.InitSnake(map, 10, 10);
+            movement.SpawnApple(map);
+            currentDirection = Direction.Right;
+            nextDirection = Direction.Right;
+            gameOverHandled = false;
         }
 
+        private void RestartGame()
+        {
+            SetupGame();
+            Time = new SimulationTime();
+            simTimer.Interval = TimeSpan.FromSeconds(Time.TimeRate);
+            simTimer.Start();
+        }
+
+        private void UpdateScore()
+        {
+            scoreText.Text = $"Pontszám: {movement.Score}";
+        }
+
+        private void ShowGameOver(bool isNewRecord = false)
+        {
+            string recordText = isNewRecord ? "\n🏆 ÚJ REKORD!" : "";
+
+            var overlay = new TextBlock
+            {
+                Text = $"GAME OVER!{recordText}\nPontszám: {movement.Score}\n\nNyomj R-t az újraindításhoz",
+                FontSize = 28,
+                FontWeight = FontWeights.Bold,
+                Foreground = Brushes.White,
+                Background = new SolidColorBrush(Color.FromArgb(180, 0, 0, 0)),
+                TextAlignment = TextAlignment.Center,
+                Padding = new Thickness(20),
+                TextWrapping = TextWrapping.Wrap
+            };
+
+            Canvas.SetLeft(overlay, 150);
+            Canvas.SetTop(overlay, 300);
+            Panel.SetZIndex(overlay, 1000);
+            GameCanvas.Children.Add(overlay);
+        }
     }
 }

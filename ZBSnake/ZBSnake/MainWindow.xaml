@@ -5,7 +5,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ZBSnake"
         mc:Ignorable="d"
-        Title="MainWindow" Height="auto" Width="auto">
+        Title="ZBSnake" Height="840" Width="820"
+        KeyDown="Window_KeyDown"
+        ResizeMode="NoResize">
     <Grid>
         <Canvas x:Name="GameCanvas" Background="Black" Width="800" Height="800" />
     </Grid>
