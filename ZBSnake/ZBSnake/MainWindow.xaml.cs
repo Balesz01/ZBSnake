@@ -55,7 +55,7 @@ namespace ZBSnake
             SetupGame();
 
             simTimer = new DispatcherTimer();
-            simTimer.Interval = TimeSpan.FromSeconds(Time.TimeRate);  // állandó sebesség
+            simTimer.Interval = TimeSpan.FromSeconds(Time.TimeRate);
             simTimer.Tick += SimTimer_Tick;
             simTimer.Start();
         }
@@ -70,7 +70,8 @@ namespace ZBSnake
             if (movement.IsGameOver)
             {
                 simTimer.Stop();
-                renderer.Draw(GameCanvas, map, cellSize);
+                // Utolsó keret kirajzolása
+                renderer.Draw(GameCanvas, map, cellSize, movement.SnakeBody);
                 UpdateScore();
 
                 if (!gameOverHandled)
@@ -81,9 +82,11 @@ namespace ZBSnake
                 return;
             }
 
-            renderer.Draw(GameCanvas, map, cellSize);
+            // Normál keret: átadjuk a snakeBody-t a helyes irányú rajzoláshoz
+            renderer.Draw(GameCanvas, map, cellSize, movement.SnakeBody);
             UpdateScore();
 
+            // Pontszám szöveg mindig felül marad
             GameCanvas.Children.Remove(scoreText);
             GameCanvas.Children.Add(scoreText);
             Panel.SetZIndex(scoreText, 999);
@@ -91,7 +94,6 @@ namespace ZBSnake
 
         private void HandleGameOver()
         {
-            // Játékosnév bekérése
             string nev = Microsoft.VisualBasic.Interaction.InputBox(
                 $"Játék vége! Pontszámod: {movement.Score}\n\nAdd meg a neved a mentéshez:",
                 "Eredmény mentése",

@@ -14,6 +14,11 @@ namespace ZBSnake.Controller
         private int rows;
         private int cols;
 
+        /// <summary>
+        /// Publikus hozzáférés a kígyó testéhez a rajzoláshoz.
+        /// </summary>
+        public LinkedList<(int row, int col)> SnakeBody => snakeBody;
+
         public Movement(int rows, int cols)
         {
             this.rows = rows;
@@ -26,8 +31,14 @@ namespace ZBSnake.Controller
         public void InitSnake(int[,] map, int startRow, int startCol)
         {
             snakeBody.Clear();
-            snakeBody.AddFirst((startRow, startCol));
-            map[startRow, startCol] = 1;
+
+            // 5 hosszú kígyó
+            for (int i = 0; i < 3; i++)
+            {
+                int col = startCol - i; // balra építjük fel
+                snakeBody.AddLast((startRow, col));
+                map[startRow, col] = 1;
+            }
         }
 
         /// <summary>
